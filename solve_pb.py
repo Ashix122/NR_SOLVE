@@ -1,43 +1,38 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-
+nt=500
+nx=100
 T=1
-dx=(1-0)/101
-dt=(T-0)/101
-x=np.linspace(0,1,100) #Discretisation of x(Spatial Grid)
-t=np.linspace(0,T,100)
+dx=(1-0)/(nx+1)
+dt=(T-0)/(nt+1)
+x=np.linspace(0,1,nx) #Discretisation of x(Spatial Grid)
+t=np.linspace(0,T,nt)
 timesteps=t
 phi = np.zeros((len(x), len(t)), dtype=complex)
 pi = np.zeros((len(x), len(t)), dtype=complex)
-def initial(xin):
-    phi0=np.exp(1j*2*np.pi*xin) #Periodic boundary condition
-    pi0=np.exp(1j*2*np.pi*xin)
-    return phi0,pi0
 
-for i in range(len(x)):
-    phi[i,0],pi[i,0]=initial(x[i])
+phi0=np.exp(-((x-0.5)/0.3)**2)/(np.sqrt(2*np.pi)*0.3) #Periodic boundary condition
+pi0=np.exp(-((x-0.5)/0.3)**2)/(np.sqrt(2*np.pi)*0.3)
+
+
+
+phi[:,0],pi[:,0]=phi0,pi0
 
 def laplacian(phi, dx,index):
     """Compute the second spatial derivative with periodic BCs."""
-    if index==0:
-        return (2*phi[index]-5*phi[index+1]+4*phi[index+2]-phi[index+3])*-1/dx**3
-    elif index==(len(x)-1):
-        return (2*phi[-1]-5*phi[-2]+4*phi[-3]-phi[-4])*-1/dx**3
-    else:
-        return (-phi[index-1]+2 * phi[index] - phi[index+1]) / dx**2
+    left = (index - 1) % nx
+    right = (index + 1) % nx
+    return (phi[right] - 2 * phi[index] + phi[left]) / dx**2
 
-dpdt0=(2*phi[0,0]-5*phi[0+1,0]+4*phi[0+2,0]-phi[0+3,0])*-1/dx**3
-dpdt1=(2*phi[-1,0]-5*phi[-2,0]+4*phi[-3,0]-phi[-4,0])*-1/dx**3
-pi[0,:]=dpdt0*timesteps
-pi[-1,:]=dpdt1*timesteps
+
 
 def calculatek(dt,t,phi,index):
     return (t+dt)*laplacian(phi,dx,index)
     
 def solverk4(phi,pi,timesteps,indexi,dt):
-    if((indexi!=0) and (indexi!=(len(x)))):
-        pi[indexi,:]=timesteps*laplacian(phi,dx,indexi)
+    
+    pi[indexi,:]=timesteps*laplacian(phi,dx,indexi)
     indexa=0
     for t in timesteps:
         if(t==T):
@@ -73,6 +68,7 @@ ax.legend()
 def update(frame):
     line_real.set_ydata(np.real(phi[:, frame]))
     line_imag.set_ydata(np.imag(phi[:, frame]))
+    ax.set_title("Wave Equation Solution at t="+str(t[frame]))
     return line_real, line_imag
 
 # Animate
