@@ -1,12 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-
+nt=1000 
+nx=40
 T=1
-dx=(1-0)/101
-dt=(T-0)/101
-x=np.linspace(0,1,100) #Discretisation of x(Spatial Grid)
-t=np.linspace(0,T,100)
+dx=(1-0)/nx
+dt=(T-0)/nt
+x=np.linspace(0,1,nx) #Discretisation of x(Spatial Grid)
+t=np.linspace(0,T,nt)
 timesteps=t
 phi = np.zeros((len(x), len(t)), dtype=complex)
 pi = np.zeros((len(x), len(t)), dtype=complex)
@@ -53,10 +54,9 @@ def solverk4(phi,pi,timesteps,indexi,dt):
 for i in x:
     indexi=0
     for a in x:
-        
         phi,pi=solverk4(phi,pi,timesteps,indexi,dt)
-        if(a==1):
-            break
+        if(indexi==1):
+            phi[-1,:]=phi[0,:]
         indexi=indexi+1
 
 fig, ax = plt.subplots()
@@ -73,8 +73,10 @@ ax.legend()
 def update(frame):
     line_real.set_ydata(np.real(phi[:, frame]))
     line_imag.set_ydata(np.imag(phi[:, frame]))
+    ax.set_title("Wave Equation Solution at t="+str(t[frame]))
     return line_real, line_imag
 
 # Animate
-ani = FuncAnimation(fig, update, frames=len(t), interval=1000)
+ani = FuncAnimation(fig, update, frames=len(t), interval=1)
 plt.show()
+
