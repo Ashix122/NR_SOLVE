@@ -41,28 +41,26 @@ for i in range(nt-1):
     k4pi=k3pi=-1*laplacian(phi[:,i]+k3phi*dt,i,dx)
     k4phi=k1phi-dt*k2pi
     pi[:,i+1]=pi[:,i]+(1/6)*(k1pi+2*k2pi+2*k3pi+k4pi)*dt
+    pi[0,i+1]=pi[-1,i+1]
     phi[:,i+1]=phi[:,i]+(1/6)*(k1phi+2*k2phi+2*k3phi+k4phi)*dt
-    
-    
+    phi[0,i+1]=phi[-1,i+1]
+
 fig, ax = plt.subplots()
 line_real, = ax.plot(x, np.real(phi[:, 0]), color="blue", label="Re(phi)")
 line_imag, = ax.plot(x, np.imag(phi[:, 0]), color="red", label="Im(phi)")
 ax.set_xlim(0, 1)
 ax.set_ylim(-3, 3)
 ax.set_xlabel("x")
-ax.set_ylabel("phi(x)")
-ax.set_title("Wave Equation Solution with sin initial data")
+ax.set_ylabel("phi")
+ax.set_title("Wave Equation Solution")
 ax.legend()
 
 # Animation function
 def update(frame):
-
     line_real.set_ydata(np.real(phi[:, frame]))
     line_imag.set_ydata(np.imag(phi[:, frame]))
-    ax.set_title("Wave Equation Solution at t="+str(t[frame])+"s")
+    ax.set_title(f"Wave Equation Solution at t={t[frame]:.2f}")
     return line_real, line_imag
 
-# Animate
-ani = FuncAnimation(fig, update, frames=len(t), interval=1)
+ani = FuncAnimation(fig, update,  interval=1)
 ani.save("final.mp4")
-
