@@ -17,6 +17,7 @@ def wave_solver(nx, nt, T=10):
     phi[:, 0], pi[:, 0] = phi0, pi0
     
     def laplacian(phi):
+        phidash=np.zeros_like(x,dtype=complex)     
         for index in range(nx):
             left = (index - 1)
             if (left==-1):
@@ -24,7 +25,8 @@ def wave_solver(nx, nt, T=10):
                 right = (index + 1)
             if right==(len(x)):
                 right=1
-        return ((phi[right] - 2 * phi[index] + phi[left])/ dx**2)
+        phidash[index]=(phi[right] - 2 * phi[index] + phi[left])/ dx**2
+        return phidash
         
 
     for i in range(nt - 1):
@@ -33,9 +35,9 @@ def wave_solver(nx, nt, T=10):
         k2pi = -laplacian(phi[:, i] + 0.5 * k1phi * dt)
         k2phi = k1phi - 0.5 * dt * k1pi
         k3pi = -laplacian(phi[:, i] + 0.5 * k2phi * dt)
-        k3phi = k1phi - 0.5 * dt * k1pi
+        k3phi = k1phi - 0.5 * dt * k2pi
         k4pi = -laplacian(phi[:, i] + k3phi * dt)
-        k4phi = k1phi - dt * k1pi
+        k4phi = k1phi - dt * k3pi
         
         pi[:, i+1] = pi[:, i] + (dt / 6) * (k1pi + 2 * k2pi + 2 * k3pi + k4pi)
         phi[:, i+1] = phi[:, i] + (dt / 6) * (k1phi + 2 * k2phi + 2 * k3phi + k4phi)

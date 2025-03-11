@@ -15,23 +15,27 @@ timesteps=t
 phi = np.zeros((len(x), len(t)), dtype=complex)
 pi = np.zeros((len(x), len(t)), dtype=complex)
 
-#phi0=np.exp(-0.5*((x-0.5)/0.09)**2)/(np.sqrt(2*np.pi)*0.09) #Periodic boundary condition
-#pi0=np.exp(-0.5*((x-0.5)/0.1)**2)/(np.sqrt(2*np.pi)*0.09)
-phi0=np.exp(1j*2*np.pi*x)
+# #Periodic boundary condition
+#phi0=np.sin(2*np.pi*x)
+phi0=np.exp(-0.5*((x-0.5)/0.1)**2)/(np.sqrt(2*np.pi)*0.09)
+#phi0=np.exp(1j*2*np.pi*x)
 #phi0=1*np.sin(2*np.pi*x)
-pi0=np.zeros_like(phi0)
+#pi0=2*np.pi*np.cos(2*np.pi*x)
+#pi0=2*np.pi*1j*np.exp(1j*2*np.pi*x)
 #pi0=np.sin(2*np.pi*x)
+pi0=np.zeros_like(phi0)
 phi[:,0],pi[:,0]=phi0,pi0
 phidash=np.zeros_like(x,dtype=complex)
 def laplacian(phi, t,dx):
     for index in range(nx):
         left = (index - 1)
+        right = (index + 1)
         if (left==-1):
             left=(len(x)-2)
-        right = (index + 1)
         if right==(len(x)):
             right=1
         phidash[index]=(phi[right] - 2 * phi[index] + phi[left])/ dx**2
+        phidash[0]=phidash[len(x)-1]
     return phidash
 
 for i in range(nt-1):
@@ -40,9 +44,9 @@ for i in range(nt-1):
     k2pi=-1*laplacian(phi[:,i]+0.5*k1phi*dt,i,dx)
     k2phi=(k1phi-dt*0.5*k1pi)
     k3pi=-1*laplacian(phi[:,i]+0.5*k2phi*dt,i,dx)
-    k3phi=k1phi-dt*0.5*k1pi 
+    k3phi=k1phi-dt*0.5*k2pi 
     k4pi=-1*laplacian(phi[:,i]+k3phi*dt,i,dx)
-    k4phi = k1phi - dt * k1pi
+    k4phi = k1phi - dt * k3pi
     pi[:,i+1]=pi[:,i]+(1/6)*(k1pi+2*k2pi+2*k3pi+k4pi)*dt
     
     phi[:,i+1]=phi[:,i]+(1/6)*(k1phi+2*k2phi+2*k3phi+k4phi)*dt
