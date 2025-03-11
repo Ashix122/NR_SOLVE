@@ -1,0 +1,93 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# Parameters
+nt = 1000
+nx = 80
+T = 0.5
+dx = 1 / (nx + 1)
+dt = T / (nt + 1)
+x = np.linspace(0, 1, nx)  # Spatial grid
+t = np.linspace(0, T, nt)
+
+# Initial conditions
+phi = np.zeros((len(x), len(t)), dtype=complex)
+pi = np.zeros((len(x), len(t)), dtype=complex)
+phi0 = np.sin(x * 2 * np.pi)
+pi0 = np.zeros_like(phi0)
+phi[:, 0], pi[:, 0] = phi0, pi0
+
+# Laplacian function with periodic BCs
+def laplacian(phi, dx, index, indext):
+    left = (index - 1) % len(x)
+    right = (index + 1) % len(x)
+    return (phi[right, indext] - 2 * phi[index, indext] + phi[left, indext]) / dx**2
+
+# Solver with Runge-Kutta 4
+def solverk4(phi, pi, timesteps, indexi, dt):
+    indexa = 0
+    for t in timesteps:
+        if t == T:
+            break
+        k1phi = pi[indexi, indexa]
+        k1pi = laplacian(phi, dx, indexi, indexa)
+        k2phi = pi[indexi, indexa] + dt * 0.5 * k1pi
+        k2pi = laplacian(phi, dx, indexi, indexa) + 0.5 * dt * k1phi
+        k3phi = k2phi
+        k3pi = k2pi
+        k4phi = k3phi + dt * k3pi
+        k4pi = k3pi + dt * k3phi + (dt**2) * (1 / 6) * k1pi
+        phi[indexi, indexa + 1] = (
+            phi[indexi, indexa] - (k1phi + 2 * k2phi + 2 * k3phi + k4phi) * dt / 6
+        )
+        pi[indexi, indexa + 1] = (
+            pi[indexi, indexa] - (k1pi + 2 * k2pi + 2 * k3pi + k4pi) * dt / 6
+        )
+        indexa += 1
+
+    # Ensure periodic boundary conditions
+    phi[-1, :] = phi[0, :]
+    pi[-1, :] = pi[0, :]
+
+    return phi, pi
+
+# Main computation loop
+indexi = 0
+for i in x[:-1]:
+    phi, pi = solverk4(phi, pi, t, indexi, dt)
+    
+    # Enforce periodic boundary for function values
+    phi[-1, :] = phi[0, :]
+    pi[-1, :] = pi[0, :]
+
+    # Enforce periodicity for spatial derivative
+    dphi_dx_0 = (phi[1, :] - phi[0, :]) / dx
+    dphi_dx_1 = (phi[-1, :] - phi[-2, :]) / dx
+    adjustment = (dphi_dx_0 - dphi_dx_1) / 2
+    phi[0, :] -= adjustment * dx
+    phi[-1, :] += adjustment * dx
+
+    indexi += 1
+
+# Visualization
+fig, ax = plt.subplots()
+line_real, = ax.plot(x, np.real(phi[:, 0]), color="blue", label="Re(phi)")
+line_imag, = ax.plot(x, np.imag(phi[:, 0]), color="red", label="Im(phi)")
+ax.set_xlim(0, 1)
+ax.set_ylim(-3, 3)
+ax.set_xlabel("x")
+ax.set_ylabel("phi")
+ax.set_title("Wave Equation Solution")
+ax.legend()
+
+# Animation function
+def update(frame):
+    line_real.set_ydata(np.real(phi[:, frame]))
+    line_imag.set_ydata(np.imag(phi[:, frame]))
+    ax.set_title("Wave Equation Solution at t=" + str(t[frame]))
+    return line_real, line_imag
+
+# Animate
+ani = FuncAnimation(fig, update, frames=len(t), interval=1)
+plt.show()

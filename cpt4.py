@@ -5,8 +5,8 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # Parameters
 nx, ny = 20 ,20 # Number of spatial points in x and y
-nt = 100        # Number of time steps
-T = 2       # Total simulation time
+nt = 1000       # Number of time steps
+T = 10     # Total simulation time
 Lx, Ly = 1.0, 1.0  # Dimensions of the domain
 dx, dy = Lx / (nx - 1), Ly / (ny - 1)  # Spatial steps
 dt = T / nt                        # Time step

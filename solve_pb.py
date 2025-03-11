@@ -24,7 +24,7 @@ def laplacian(phi, dx,index):
     """Compute the second spatial derivative with periodic BCs."""
     left = (index - 1) % nx
     right = (index + 1) % nx
-    return (phi[right] - 2 * phi[index] + phi[left])*-1 / dx**2
+    return (phi[right] - 2 * phi[index] + phi[left]) / dx**2
 
 
 
@@ -40,10 +40,10 @@ def solverk4(phi,pi,timesteps,indexi,dt):
     for t in timesteps:
         if(t==T):
             break
-        k1=-dt*pi[indexi,indexa]
-        k2=-dt*calculatek(dt/2,t,phi[:,indexa],indexi)
-        k3=-dt*calculatek(dt/2,t,phi[:,indexa],indexi)
-        k4=-dt*calculatek(dt,t,phi[:,indexa],indexi)
+        k1=dt*pi[indexi,indexa]
+        k2=dt*calculatek(dt/2,t,phi[:,indexa],indexi)
+        k3=dt*calculatek(dt/2,t,phi[:,indexa],indexi)
+        k4=dt*calculatek(dt,t,phi[:,indexa],indexi)
         phi[indexi,indexa+1]=phi[indexi,indexa]+(k1+2*k2+2*k3+k4)/6
         indexa=indexa+1 
     return phi,pi
@@ -52,8 +52,8 @@ indexi=0
 
 for i in x[0:-1]:
     phi,pi=solverk4(phi,pi,timesteps,indexi,dt)
-    if(indexi==1):
-        phi[-1,:]=phi[0,:]
+    phi[-1,:]=phi[0,:]
+    pi[-1,:]=pi[0,:]
     indexi=indexi+1
 
 
